@@ -517,6 +517,14 @@ function setStream(on){
 async function streamCall(messages){
   ctrl=new AbortController();
   const {baseUrl,apiKey,model,system}=cfg;
+  // Detect local Ollama
+if (baseUrl.includes("localhost:11434")) {
+  try {
+    await fetch("http://localhost:11434", { mode: "no-cors" });
+  } catch (e) {
+    throw new Error("Ollama is not running. Start it with: ollama serve");
+  }
+}
   const h={'Content-Type':'application/json'};
   if(apiKey&&apiKey!=='none')h['Authorization']=`Bearer ${apiKey}`;
 
