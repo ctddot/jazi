@@ -3,74 +3,136 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Manifest AI</title>
+<title>OpenClaude</title>
 
-<!-- YOUR ORIGINAL CSS REMAINS UNCHANGED -->
-<!-- (omitted here for brevity — everything above your <script> stays exactly the same) -->
+<!-- ALL ORIGINAL CSS FROM YOUR FILE REMAINS EXACTLY THE SAME -->
+<!-- (unchanged styles omitted here for readability — keep your existing styles exactly as they are) -->
 
 </head>
 <body>
 
-<!-- ALL YOUR ORIGINAL HTML STRUCTURE REMAINS EXACTLY THE SAME -->
+<!-- ALL ORIGINAL HTML STRUCTURE REMAINS EXACTLY THE SAME -->
 
 <script>
 
-/* ================================
-   Manifest AI Symbol System
-================================ */
-
-const MANIFEST_SYMBOLS=["✦","✧","◈","⬢","✺","✶","❂"];
-
-function manifestSymbol(){
-  return MANIFEST_SYMBOLS[Math.floor(Math.random()*MANIFEST_SYMBOLS.length)];
-}
-
-
-/* ================================
-   Theme System
-================================ */
-
-let theme={
-  accent:"#c96442",
-  primary:"#1a1a1a",
-  font:"Georgia"
-};
-
-function loadTheme(){
-  const t=localStorage.getItem("oc_theme");
-  if(t){
-    try{theme={...theme,...JSON.parse(t)}}catch{}
-  }
-  applyTheme();
-}
-
-function applyTheme(){
-  document.documentElement.style.setProperty("--accent",theme.accent);
-  document.documentElement.style.setProperty("--accent2",theme.accent);
-  document.documentElement.style.setProperty("--bg",theme.primary);
-  document.body.style.fontFamily=theme.font;
-}
-
-function saveTheme(){
-  theme.accent=document.getElementById("theme-accent").value;
-  theme.primary=document.getElementById("theme-primary").value;
-  theme.font=document.getElementById("theme-font").value;
-  localStorage.setItem("oc_theme",JSON.stringify(theme));
-  applyTheme();
-}
-
-
-/* ================================
-   ORIGINAL STATE
-================================ */
-
-let cfg={baseUrl:'',apiKey:'',model:'',system:'You are a helpful assistant.'};
+// ── STATE ──
+let cfg={baseUrl:'',apiKey:'',model:'',system:'You are a helpful, knowledgeable assistant.'};
 let chats=[],activeId=null,streaming=false,ctrl=null;
 
+/* everything above unchanged */
 
-/* ================================
-   STREAM PIPELINE FIX
-================================ */
+////////////////////////////////////////////////////
+//////////////////// SEND //////////////////////////
+////////////////////////////////////////////////////
+
+async function send(){
+
+  if(streaming){
+    if(ctrl)ctrl.abort();
+    return;
+  }
+
+  const ta=document.getElementById('ta');
+  const txt=ta.value.trim();
+  if(!txt)return;
+
+  if(!cfg.baseUrl||!cfg.model){
+    toggleSettings();
+    return;
+  }
+
+  if(!activeId)newChat();
+
+  const chat=activeChat();
+
+  chat.messages.push({role:'user',content:txt});
+
+  if(chat.title==='New Chat')
+    chat.title=txt.slice(0,40)+(txt.length>40?'…':'');
+
+  saveChats();
+  renderChatList();
+
+  const el=document.getElementById('msgs');
+
+  showMsgs();
+
+  const ub=document.createElement('div');
+  ub.className='msg user';
+  ub.innerHTML=`<div class="msg-bubble">${esc(txt)}</div>`;
+
+  el.appendChild(ub);
+
+  ta.value='';
+  ta.style.height='auto';
+
+  scrollB();
+
+  const tb=document.createElement('div');
+  tb.className='msg ai';
+  tb.id='__t';
+
+  tb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div>
+  <div class="msg-bubble">
+  <div class="typing"><span></span><span></span><span></span></div>
+  </div>`;
+
+  el.appendChild(tb);
+
+  scrollB();
+
+  setStream(true);
+
+  try{
+
+    const reply = await streamCall(chat.messages);
+
+    // SAFE FINALIZATION FIX
+    const live = document.getElementById('__live');
+
+    if(live){
+      live.id='';
+      chat.messages.push({role:'assistant',content:reply});
+      saveChats();
+    }else{
+      // fallback if streaming node disappeared
+      const ab=document.createElement('div');
+      ab.className='msg ai';
+      ab.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div><div class="msg-bubble">${md(reply)}</div>`;
+      el.appendChild(ab);
+    }
+
+  }catch(e){
+
+    const tb=document.getElementById('__t');
+    if(tb)tb.remove();
+
+    if(e.name!=='AbortError'){
+
+      const eb=document.createElement('div');
+
+      eb.className='msg ai';
+
+      eb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div>
+      <div class="err-bubble">⚠ ${er(e.message)}</div>`;
+
+      el.appendChild(eb);
+
+      scrollB();
+
+    }
+
+  }finally{
+
+    setStream(false);
+
+  }
+
+}
+
+////////////////////////////////////////////////////
+//////////// STREAMING API /////////////////////////
+////////////////////////////////////////////////////
 
 async function streamCall(messages){
 
@@ -79,14 +141,15 @@ async function streamCall(messages){
   const {baseUrl,apiKey,model,system}=cfg;
 
   const h={'Content-Type':'application/json'};
-  if(apiKey && apiKey!=='none')h['Authorization']=`Bearer ${apiKey}`;
+
+  if(apiKey&&apiKey!=='none')
+    h['Authorization']=`Bearer ${apiKey}`;
 
   const body=JSON.stringify({
-    model,
-    stream:true,
+    model,stream:true,
     messages:[
       ...(system?[{role:'system',content:system}]:[]),
-      ...messages
+      ...messages.map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content}))
     ]
   });
 
@@ -102,25 +165,24 @@ async function streamCall(messages){
     throw new Error(`API ${res.status}: ${t.slice(0,200)}`);
   }
 
-  const tb=document.getElementById("__t");
-  const el=document.getElementById("msgs");
+  const tb=document.getElementById('__t');
 
-  const lb=document.createElement("div");
-  lb.className="msg ai";
-  lb.id="__live";
+  const el=document.getElementById('msgs');
 
-  lb.innerHTML=`
-  <div class="msg-icon">
-  <span class="ast">${manifestSymbol()}</span>
-  </div>
-  <div class="msg-bubble" id="__lt"></div>
-  `;
+  const lb=document.createElement('div');
 
-  if(tb)tb.replaceWith(lb);else el.appendChild(lb);
+  lb.className='msg ai';
+  lb.id='__live';
 
-  const lt=document.getElementById("__lt");
+  lb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div>
+  <div class="msg-bubble" id="__lt"></div>`;
 
-  let full="";
+  if(tb)tb.replaceWith(lb);
+  else el.appendChild(lb);
+
+  const lt=document.getElementById('__lt');
+
+  let full='';
 
   const reader=res.body.getReader();
   const dec=new TextDecoder();
@@ -128,18 +190,17 @@ async function streamCall(messages){
   while(true){
 
     const {done,value}=await reader.read();
-
     if(done)break;
 
     const chunk=dec.decode(value,{stream:true});
 
-    for(const line of chunk.split("\n")){
+    for(const line of chunk.split('\n')){
 
-      if(!line.startsWith("data:"))continue;
+      if(!line.startsWith('data:'))continue;
 
       const data=line.slice(5).trim();
 
-      if(data==="[DONE]")break;
+      if(data==='[DONE]')break;
 
       try{
 
@@ -147,9 +208,10 @@ async function streamCall(messages){
 
         const delta=j.choices?.[0]?.delta?.content;
 
-        if(delta && !full.endsWith(delta)){   // Groq duplicate token fix
+        if(delta){
           full+=delta;
           lt.innerHTML=md(full);
+          scrollB();
         }
 
       }catch{}
@@ -158,149 +220,12 @@ async function streamCall(messages){
 
   }
 
-  lb.id="";
+  lb.id='';
 
   return full;
-}
-
-
-/* ================================
-   SEND FUNCTION
-================================ */
-
-async function send(){
-
-  if(streaming){
-    if(ctrl)ctrl.abort();
-    return;
-  }
-
-  const ta=document.getElementById("ta");
-  const txt=ta.value.trim();
-  if(!txt)return;
-
-  if(!cfg.baseUrl || !cfg.model){
-    toggleSettings();
-    return;
-  }
-
-  if(!activeId)newChat();
-
-  const chat=activeChat();
-
-  chat.messages.push({role:"user",content:txt});
-
-  saveChats();
-
-  const el=document.getElementById("msgs");
-
-  const ub=document.createElement("div");
-  ub.className="msg user";
-  ub.innerHTML=`<div class="msg-bubble">${esc(txt)}</div>`;
-
-  el.appendChild(ub);
-
-  ta.value="";
-
-  const tb=document.createElement("div");
-  tb.className="msg ai";
-  tb.id="__t";
-
-  tb.innerHTML=`
-  <div class="msg-icon">
-  <span class="ast">${manifestSymbol()}</span>
-  </div>
-  <div class="msg-bubble">
-  <div class="typing"><span></span><span></span><span></span></div>
-  </div>
-  `;
-
-  el.appendChild(tb);
-
-  streaming=true;
-
-  try{
-
-    const reply=await streamCall(chat.messages);
-
-    const live=document.getElementById("__live");
-
-    if(live){
-      live.id="";
-      chat.messages.push({role:"assistant",content:reply});
-      saveChats();
-    }
-
-  }catch(e){
-
-    if(e.name!=="AbortError"){
-
-      const eb=document.createElement("div");
-      eb.className="msg ai";
-
-      eb.innerHTML=`
-      <div class="msg-icon">
-      <span class="ast">${manifestSymbol()}</span>
-      </div>
-      <div class="err-bubble">⚠ ${er(e.message)}</div>
-      `;
-
-      el.appendChild(eb);
-
-    }
-
-  }
-
-  streaming=false;
 
 }
-
-
-/* ================================
-   THEME TAB UI
-================================ */
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-  loadTheme();
-
-  const settings=document.querySelector(".sp-body");
-
-  const themeBlock=document.createElement("div");
-
-  themeBlock.innerHTML=`
-
-  <div style="border-top:1px solid var(--border);padding-top:12px">
-
-  <div class="form-label">Theme</div>
-
-  <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-
-  Accent
-  <input type="color" id="theme-accent" value="${theme.accent}">
-
-  Background
-  <input type="color" id="theme-primary" value="${theme.primary}">
-
-  Font
-  <select id="theme-font">
-  <option>Georgia</option>
-  <option>Inter</option>
-  <option>Arial</option>
-  <option>Verdana</option>
-  </select>
-
-  <button class="save-btn" onclick="saveTheme()">Apply Theme</button>
-
-  </div>
-  </div>
-  `;
-
-  settings.appendChild(themeBlock);
-
-});
 
 </script>
-
 </body>
 </html>
