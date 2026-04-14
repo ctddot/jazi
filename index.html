@@ -102,7 +102,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Georgi
 .ast{color:var(--accent);font-size:20px;line-height:1;user-select:none}
 .msg-bubble{max-width:78%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.7;font-family:sans-serif}
 .msg.user .msg-bubble{background:var(--surface2);color:var(--text);border-bottom-right-radius:4px}
-.msg.ai .msg-bubble{background:transparent;color:var(--text);padding-left:0;max-width:92%}
+.msg.ai .msg-bubble{
+  background:transparent;
+  color:var(--text);
+  padding-left:6px;
+  max-width:92%;
+}
 .msg-bubble pre{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin:8px 0;overflow-x:auto;font-size:13px}
 .msg-bubble code{font-family:'Courier New',monospace;font-size:13px}
 .msg-bubble p{margin-bottom:8px}
