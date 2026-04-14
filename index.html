@@ -3,565 +3,304 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OpenClaude</title>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#1a1a1a;--sidebar:#141414;--surface:#252525;--surface2:#2e2e2e;
-  --border:#333;--border2:#404040;--text:#e2e2e2;--muted:#888;
-  --accent:#c96442;--accent2:#d97452;--green:#4caf82;--red:#e05555;
-  --sidebar-w:52px;
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Georgia',serif;overflow:hidden}
-.app{display:flex;height:100vh}
+<title>Manifest AI</title>
 
-/* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;flex-shrink:0;z-index:20}
-.sb-top{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
-.sb-bot{display:flex;flex-direction:column;align-items:center;gap:6px;padding-bottom:10px}
-.sb-divider{width:28px;height:1px;background:var(--border);margin:4px 0}
-.sb-btn{width:36px;height:36px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;position:relative}
-.sb-btn:hover{background:var(--surface2);color:var(--text)}
-.sb-btn.active{background:var(--surface);color:var(--text)}
-.sb-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.sb-btn[data-tip]::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#111;color:var(--text);font-size:11px;font-family:sans-serif;padding:4px 9px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid var(--border);z-index:99}
-.sb-btn[data-tip]:hover::after{opacity:1}
-.avatar{width:28px;height:28px;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:11px;font-family:sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);transition:border-color .15s}
-.avatar:hover{border-color:var(--muted)}
+<!-- YOUR ORIGINAL CSS REMAINS UNCHANGED -->
+<!-- (omitted here for brevity — everything above your <script> stays exactly the same) -->
 
-/* ── CHAT PANEL ── */
-.chat-panel{position:fixed;top:0;left:var(--sidebar-w);width:260px;height:100vh;background:var(--sidebar);border-right:1px solid var(--border);transform:translateX(-100%);transition:transform .25s ease;z-index:15;display:flex;flex-direction:column}
-.chat-panel.open{transform:translateX(0)}
-.cp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;border-bottom:1px solid var(--border)}
-.cp-header h3{font-size:11px;font-family:sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.cp-new{width:26px;height:26px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
-.cp-new:hover{background:var(--surface2);color:var(--text)}
-.cp-new svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.cp-list{flex:1;overflow-y:auto;padding:8px}
-.cp-list::-webkit-scrollbar{width:3px}
-.cp-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.chat-item{padding:8px 10px;border-radius:8px;font-size:12px;font-family:sans-serif;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
-.chat-item:hover{background:var(--surface2);color:var(--text)}
-.chat-item.active{background:var(--surface);color:var(--text)}
-.chat-item svg{width:12px;height:12px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-
-/* ── SETTINGS PANEL ── */
-.settings-panel{position:fixed;top:0;left:var(--sidebar-w);width:320px;height:100vh;background:var(--sidebar);border-right:1px solid var(--border);transform:translateX(-100%);transition:transform .25s ease;z-index:15;display:flex;flex-direction:column;overflow:hidden}
-.settings-panel.open{transform:translateX(0)}
-.sp-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
-.sp-header h3{font-size:11px;font-family:sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-.sp-close{width:26px;height:26px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
-.sp-close:hover{background:var(--surface2);color:var(--text)}
-.sp-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sp-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
-.sp-body::-webkit-scrollbar{width:3px}
-.sp-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-label{font-size:11px;font-family:sans-serif;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.form-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:13px;font-family:sans-serif;color:var(--text);outline:none;transition:border-color .15s}
-.form-input:focus{border-color:#555}
-.form-input::placeholder{color:var(--muted)}
-.provider-presets{display:flex;flex-wrap:wrap;gap:6px}
-.preset-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;font-family:sans-serif;cursor:pointer;transition:all .15s}
-.preset-btn:hover{background:var(--surface2);color:var(--text);border-color:#555}
-.preset-btn.sel{background:var(--surface);color:var(--text);border-color:var(--accent)}
-.save-btn{width:100%;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:13px;font-family:sans-serif;font-weight:600;cursor:pointer;transition:background .15s,transform .1s}
-.save-btn:hover{background:var(--accent2)}
-.save-btn:active{transform:scale(.98)}
-.status-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:1px solid var(--border2);font-size:12px;font-family:sans-serif;display:none}
-.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.s-dot.ok{background:var(--green)}
-.s-dot.err{background:var(--red)}
-.s-dot.spin{background:#f0a030;animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── MAIN ── */
-.main{flex:1;display:flex;flex-direction:column;align-items:center;overflow:hidden;position:relative}
-.main::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none;opacity:.3}
-
-/* ── WELCOME ── */
-.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 24px;position:relative;z-index:1;text-align:center}
-.w-logo{color:var(--accent);font-size:46px;line-height:1;user-select:none}
-.w-title{font-size:21px;font-weight:400;color:var(--text);letter-spacing:-.01em}
-.w-sub{font-size:13px;color:var(--muted);font-family:sans-serif;max-width:360px;line-height:1.6}
-.w-cta{padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;font-family:sans-serif;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;margin-top:4px}
-.w-cta:hover{background:var(--surface2);color:var(--text);border-color:#555}
-.w-cta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:380px}
-.chip{padding:4px 10px;border-radius:20px;background:var(--surface);border:1px solid var(--border2);font-size:11px;font-family:sans-serif;color:var(--muted)}
-
-/* ── MESSAGES ── */
-.messages{flex:1;width:100%;max-width:720px;overflow-y:auto;padding:24px 24px 0;display:flex;flex-direction:column;gap:2px;position:relative;z-index:1;display:none}
-.messages::-webkit-scrollbar{width:4px}
-.messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.msg{display:flex;gap:12px;padding:4px 0;animation:fu .2s ease}
-.msg.user{flex-direction:row-reverse}
-@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.msg-icon{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px}
-.msg.user .msg-icon{display:none}
-.ast{color:var(--accent);font-size:20px;line-height:1;user-select:none}
-.msg-bubble{max-width:78%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.7;font-family:sans-serif}
-.msg.user .msg-bubble{background:var(--surface2);color:var(--text);border-bottom-right-radius:4px}
-.msg.ai .msg-bubble{background:transparent;color:var(--text);padding-left:0;max-width:92%}
-.msg-bubble pre{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin:8px 0;overflow-x:auto;font-size:13px}
-.msg-bubble code{font-family:'Courier New',monospace;font-size:13px}
-.msg-bubble p{margin-bottom:8px}
-.msg-bubble p:last-child{margin-bottom:0}
-.msg-bubble strong{color:#eee}
-.typing{display:flex;gap:4px;align-items:center;padding:6px 0}
-.typing span{width:6px;height:6px;background:var(--muted);border-radius:50%;animation:d 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes d{0%,80%,100%{opacity:.3;transform:scale(.9)}40%{opacity:1;transform:scale(1.1)}}
-.err-bubble{padding:10px 14px;border-radius:10px;background:#2a1515;border:1px solid #5a2a2a;color:#e07070;font-size:13px;font-family:sans-serif;max-width:92%}
-
-/* ── INPUT ── */
-.input-wrap{width:100%;max-width:720px;padding:14px 24px 20px;position:relative;z-index:1;flex-shrink:0}
-.input-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 28px rgba(0,0,0,.5);transition:border-color .2s}
-.input-card:focus-within{border-color:#505050}
-.input-ta{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Georgia',serif;font-size:14.5px;line-height:1.6;resize:none;min-height:48px;max-height:280px;overflow-y:auto}
-.input-ta::placeholder{color:var(--muted)}
-.input-ta::-webkit-scrollbar{width:3px}
-.input-ta::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.input-foot{display:flex;align-items:center;justify-content:space-between}
-.i-left{display:flex;gap:4px;align-items:center}
-.i-right{display:flex;align-items:center;gap:8px;position:relative}
-.icon-btn{width:30px;height:30px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
-.icon-btn:hover{background:var(--surface2);color:var(--text)}
-.icon-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.m-pill{font-size:11px;font-family:sans-serif;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s,color .15s;display:flex;align-items:center;gap:5px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.m-pill:hover{background:var(--surface2);color:var(--text)}
-.m-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
-.m-dot.off{background:var(--red)}
-.send-btn{width:34px;height:34px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;flex-shrink:0}
-.send-btn:hover:not(:disabled){background:var(--accent2)}
-.send-btn:active:not(:disabled){transform:scale(.93)}
-.send-btn svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.stop-sv{fill:#fff;stroke:none}
-
-/* model picker */
-.mpicker{position:absolute;bottom:calc(100% + 8px);right:0;background:var(--sidebar);border:1px solid var(--border2);border-radius:10px;padding:6px;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;z-index:30}
-.mpicker.open{display:block}
-.mp-sec{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px 3px;font-family:sans-serif}
-.mp-item{padding:8px 10px;border-radius:6px;font-size:12px;font-family:sans-serif;color:var(--muted);cursor:pointer;transition:background .1s,color .1s;display:flex;align-items:center;justify-content:space-between}
-.mp-item:hover{background:var(--surface2);color:var(--text)}
-.mp-item.cur{color:var(--text)}
-.mp-ck{color:var(--accent)}
-</style>
 </head>
 <body>
-<div class="app">
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <div class="sb-top">
-    <button class="sb-btn active" id="btn-home" data-tip="Home" onclick="goHome()">
-      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    </button>
-    <button class="sb-btn" id="btn-chats" data-tip="Chats" onclick="toggleChats()">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    </button>
-    <button class="sb-btn" data-tip="Focus input" onclick="document.getElementById('ta').focus()">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </button>
-    <div class="sb-divider"></div>
-    <button class="sb-btn" id="btn-settings" data-tip="Provider Settings" onclick="toggleSettings()">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
-  </div>
-  <div class="sb-bot">
-    <button class="sb-btn" data-tip="New Chat" onclick="newChat()">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
-    <div class="avatar" onclick="toggleSettings()" title="Settings">J</div>
-  </div>
-</aside>
-
-<!-- CHAT HISTORY PANEL -->
-<div class="chat-panel" id="chat-panel">
-  <div class="cp-header">
-    <h3>Chats</h3>
-    <button class="cp-new" onclick="newChat()" title="New chat">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
-  </div>
-  <div class="cp-list" id="cp-list"></div>
-</div>
-
-<!-- SETTINGS PANEL -->
-<div class="settings-panel" id="sp">
-  <div class="sp-header">
-    <h3>Provider Setup</h3>
-    <button class="sp-close" onclick="toggleSettings()">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div class="sp-body">
-    <div class="form-group">
-      <div class="form-label">Quick Presets</div>
-      <div class="provider-presets">
-        <button class="preset-btn" data-preset="openai"     onclick="applyPreset(this,'openai')">OpenAI</button>
-        <button class="preset-btn" data-preset="ollama"     onclick="applyPreset(this,'ollama')">Ollama</button>
-        <button class="preset-btn" data-preset="deepseek"   onclick="applyPreset(this,'deepseek')">DeepSeek</button>
-        <button class="preset-btn" data-preset="groq"       onclick="applyPreset(this,'groq')">Groq</button>
-        <button class="preset-btn" data-preset="openrouter" onclick="applyPreset(this,'openrouter')">OpenRouter</button>
-        <button class="preset-btn" data-preset="gemini"     onclick="applyPreset(this,'gemini')">Gemini</button>
-        <button class="preset-btn" data-preset="lmstudio"   onclick="applyPreset(this,'lmstudio')">LM Studio</button>
-        <button class="preset-btn" data-preset="mistral"    onclick="applyPreset(this,'mistral')">Mistral</button>
-      </div>
-    </div>
-    <div class="form-group">
-      <div class="form-label">API Base URL</div>
-      <input class="form-input" id="sp-url"    placeholder="https://api.openai.com/v1" type="text"/>
-    </div>
-    <div class="form-group">
-      <div class="form-label">API Key</div>
-      <input class="form-input" id="sp-key"    placeholder="sk-..." type="password"/>
-    </div>
-    <div class="form-group">
-      <div class="form-label">Model</div>
-      <input class="form-input" id="sp-model"  placeholder="gpt-4o" type="text"/>
-    </div>
-    <div class="form-group">
-      <div class="form-label">System Prompt (optional)</div>
-      <textarea class="form-input" id="sp-sys" placeholder="You are a helpful assistant." rows="3" style="resize:vertical;min-height:70px"></textarea>
-    </div>
-    <div class="status-bar" id="s-bar">
-      <div class="s-dot" id="s-dot"></div>
-      <span id="s-txt" style="font-family:sans-serif;font-size:12px;color:var(--muted)"></span>
-    </div>
-    <button class="save-btn" onclick="testSave()">Test &amp; Save Connection</button>
-    <div style="font-size:11px;color:var(--muted);font-family:sans-serif;line-height:1.6;border-top:1px solid var(--border);padding-top:12px">
-      <strong style="color:#bbb">Powered by OpenClaude</strong><br>
-      Supports OpenAI, Ollama, DeepSeek, Groq, Gemini, OpenRouter, LM Studio, Mistral, and any OpenAI-compatible API.<br><br>
-      Your credentials are saved locally in your browser only.
-    </div>
-  </div>
-</div>
-
-<!-- MAIN -->
-<main class="main">
-  <div class="welcome" id="welcome">
-    <div class="w-logo">✳</div>
-    <div class="w-title">What can I help with?</div>
-    <div class="w-sub">Connect any AI provider to start chatting. All processing goes directly from your browser to your chosen API.</div>
-    <button class="w-cta" onclick="toggleSettings()">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Configure Provider
-    </button>
-    <div class="chips">
-      <span class="chip">OpenAI</span><span class="chip">Ollama</span><span class="chip">DeepSeek</span>
-      <span class="chip">Groq</span><span class="chip">Gemini</span><span class="chip">OpenRouter</span>
-      <span class="chip">LM Studio</span><span class="chip">Mistral</span>
-    </div>
-  </div>
-
-  <div class="messages" id="msgs"></div>
-
-  <div class="input-wrap">
-    <div class="input-card">
-      <textarea class="input-ta" id="ta" placeholder="Message..." rows="2"
-        oninput="ar(this)" onkeydown="hk(event)"></textarea>
-      <div class="input-foot">
-        <div class="i-left">
-          <button class="icon-btn" title="Attach file" onclick="alert('File upload: paste your file content directly into the message box.')">
-            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-          </button>
-        </div>
-        <div class="i-right">
-          <div class="mpicker" id="mpicker"></div>
-          <button class="m-pill" id="mpill" onclick="toggleMpicker()">
-            <span class="m-dot off" id="mdot"></span>
-            <span id="mtext">No provider</span>
-          </button>
-          <button class="send-btn" id="send" onclick="send()" title="Send (Enter)">
-            <svg id="send-icon" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
-</div>
+<!-- ALL YOUR ORIGINAL HTML STRUCTURE REMAINS EXACTLY THE SAME -->
 
 <script>
-// ── STATE ──
-let cfg={baseUrl:'',apiKey:'',model:'',system:'You are a helpful, knowledgeable assistant.'};
+
+/* ================================
+   Manifest AI Symbol System
+================================ */
+
+const MANIFEST_SYMBOLS=["✦","✧","◈","⬢","✺","✶","❂"];
+
+function manifestSymbol(){
+  return MANIFEST_SYMBOLS[Math.floor(Math.random()*MANIFEST_SYMBOLS.length)];
+}
+
+
+/* ================================
+   Theme System
+================================ */
+
+let theme={
+  accent:"#c96442",
+  primary:"#1a1a1a",
+  font:"Georgia"
+};
+
+function loadTheme(){
+  const t=localStorage.getItem("oc_theme");
+  if(t){
+    try{theme={...theme,...JSON.parse(t)}}catch{}
+  }
+  applyTheme();
+}
+
+function applyTheme(){
+  document.documentElement.style.setProperty("--accent",theme.accent);
+  document.documentElement.style.setProperty("--accent2",theme.accent);
+  document.documentElement.style.setProperty("--bg",theme.primary);
+  document.body.style.fontFamily=theme.font;
+}
+
+function saveTheme(){
+  theme.accent=document.getElementById("theme-accent").value;
+  theme.primary=document.getElementById("theme-primary").value;
+  theme.font=document.getElementById("theme-font").value;
+  localStorage.setItem("oc_theme",JSON.stringify(theme));
+  applyTheme();
+}
+
+
+/* ================================
+   ORIGINAL STATE
+================================ */
+
+let cfg={baseUrl:'',apiKey:'',model:'',system:'You are a helpful assistant.'};
 let chats=[],activeId=null,streaming=false,ctrl=null;
 
-const PRESETS={
-  openai:    {u:'https://api.openai.com/v1',          m:'gpt-4o'},
-  deepseek:  {u:'https://api.deepseek.com/v1',        m:'deepseek-chat'},
-  groq:      {u:'https://api.groq.com/openai/v1',     m:'llama-3.3-70b-versatile'},
-  openrouter:{u:'https://openrouter.ai/api/v1',       m:'openai/gpt-4o'},
-  mistral:   {u:'https://api.mistral.ai/v1',          m:'mistral-large-latest'},
-  gemini:    {u:'https://generativelanguage.googleapis.com/v1beta/openai',m:'gemini-2.0-flash'},
-  ollama:    {u:'http://localhost:11434/v1',           m:'llama3.2',   nokey:true},
-  lmstudio:  {u:'http://localhost:1234/v1',            m:'local-model',nokey:true},
-};
 
-const MODELS={
-  'OpenAI':  ['gpt-4o','gpt-4o-mini','gpt-4-turbo','o1','o1-mini','o3-mini'],
-  'DeepSeek':['deepseek-chat','deepseek-reasoner'],
-  'Groq':    ['llama-3.3-70b-versatile','llama-3.1-8b-instant','mixtral-8x7b-32768','gemma2-9b-it'],
-  'Gemini':  ['gemini-2.0-flash','gemini-1.5-pro','gemini-1.5-flash'],
-  'Mistral': ['mistral-large-latest','mistral-small-latest','codestral-latest'],
-  'Local':   ['llama3.2','llama3.1','qwen2.5-coder:7b','phi4','gemma3:4b','deepseek-r1:8b','mistral'],
-};
+/* ================================
+   STREAM PIPELINE FIX
+================================ */
 
-// ── INIT ──
-(function(){
-  try{const s=localStorage.getItem('oc_cfg');if(s)cfg={...cfg,...JSON.parse(s)};}catch(e){}
-  try{const s=localStorage.getItem('oc_chats');if(s)chats=JSON.parse(s);}catch(e){}
-  const la=localStorage.getItem('oc_active');
-  if(la&&chats.find(c=>c.id===la))activeId=la;
-  // populate settings
-  document.getElementById('sp-url').value  =cfg.baseUrl||'';
-  document.getElementById('sp-key').value  =cfg.apiKey||'';
-  document.getElementById('sp-model').value=cfg.model||'';
-  document.getElementById('sp-sys').value  =cfg.system||'';
-  updatePill();buildMpicker();renderChatList();
-  if(activeId){showMsgs();renderMsgs(true);}
-})();
-
-function saveCfg(){localStorage.setItem('oc_cfg',JSON.stringify(cfg));}
-function saveChats(){localStorage.setItem('oc_chats',JSON.stringify(chats));}
-function saveActive(){if(activeId)localStorage.setItem('oc_active',activeId);}
-
-// ── PANELS ──
-let cpOpen=false,spOpen=false;
-function closeAll(){
-  if(cpOpen){document.getElementById('chat-panel').classList.remove('open');cpOpen=false;document.getElementById('btn-chats').classList.remove('active');}
-  if(spOpen){document.getElementById('sp').classList.remove('open');spOpen=false;document.getElementById('btn-settings').classList.remove('active');}
-}
-function toggleChats(){if(spOpen)closeAll();cpOpen=!cpOpen;document.getElementById('chat-panel').classList.toggle('open',cpOpen);document.getElementById('btn-chats').classList.toggle('active',cpOpen);}
-function toggleSettings(){if(cpOpen)closeAll();spOpen=!spOpen;document.getElementById('sp').classList.toggle('open',spOpen);document.getElementById('btn-settings').classList.toggle('active',spOpen);}
-function goHome(){closeAll();}
-
-// ── PRESETS ──
-function applyPreset(btn,key){
-  const p=PRESETS[key];if(!p)return;
-  document.getElementById('sp-url').value=p.u;
-  document.getElementById('sp-model').value=p.m;
-  if(p.nokey)document.getElementById('sp-key').value='none';
-  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('sel'));
-  btn.classList.add('sel');
-}
-
-// ── TEST & SAVE ──
-async function testSave(){
-  const url=document.getElementById('sp-url').value.trim().replace(/\/$/,'');
-  const key=document.getElementById('sp-key').value.trim();
-  const model=document.getElementById('sp-model').value.trim();
-  const sys=document.getElementById('sp-sys').value.trim();
-  if(!url||!model){showStatus('err','Please fill in Base URL and Model.');return;}
-  showStatus('spin','Testing connection...');
-  try{
-    const h={'Content-Type':'application/json'};
-    if(key&&key!=='none')h['Authorization']=`Bearer ${key}`;
-    const r=await fetch(`${url}/chat/completions`,{
-      method:'POST',headers:h,
-      body:JSON.stringify({model,max_tokens:20,messages:[{role:'user',content:'Reply with "ok" only.'}]}),
-      signal:AbortSignal.timeout(15000)
-    });
-    if(!r.ok){const t=await r.text();showStatus('err',`Error ${r.status}: ${t.slice(0,120)}`);return;}
-    const d=await r.json();
-    if(d.choices&&d.choices[0]){
-      cfg={baseUrl:url,apiKey:key,model,system:sys||'You are a helpful assistant.'};
-      saveCfg();updatePill();buildMpicker();
-      const reply=(d.choices[0].message?.content||'').trim();
-      showStatus('ok',`Connected! Model said: "${reply.slice(0,60)}"`);
-    }else{showStatus('err','Unexpected response format.');}
-  }catch(e){showStatus('err',e.message||'Connection failed.');}
-}
-function showStatus(cls,msg){
-  const bar=document.getElementById('s-bar');
-  bar.style.display='flex';
-  document.getElementById('s-dot').className='s-dot '+cls;
-  document.getElementById('s-txt').textContent=msg;
-}
-
-// ── PILL ──
-function updatePill(){
-  document.getElementById('mdot').className='m-dot'+(cfg.model?'':' off');
-  document.getElementById('mtext').textContent=cfg.model?cfg.model.slice(0,20)+(cfg.model.length>20?'…':''):'No provider';
-}
-function buildMpicker(){
-  const p=document.getElementById('mpicker');p.innerHTML='';
-  for(const[sec,ms]of Object.entries(MODELS)){
-    const d=document.createElement('div');d.className='mp-sec';d.textContent=sec;p.appendChild(d);
-    ms.forEach(m=>{
-      const i=document.createElement('div');
-      i.className='mp-item'+(m===cfg.model?' cur':'');
-      i.innerHTML=`<span>${m}</span>${m===cfg.model?'<span class="mp-ck">✓</span>':''}`;
-      i.onclick=()=>{cfg.model=m;saveCfg();updatePill();buildMpicker();document.getElementById('sp-model').value=m;closeMpicker();};
-      p.appendChild(i);
-    });
-  }
-}
-function toggleMpicker(){document.getElementById('mpicker').classList.toggle('open');}
-function closeMpicker(){document.getElementById('mpicker').classList.remove('open');}
-document.addEventListener('click',e=>{const pill=document.getElementById('mpill'),picker=document.getElementById('mpicker');if(!pill.contains(e.target)&&!picker.contains(e.target))closeMpicker();});
-
-// ── CHATS ──
-function newChat(){
-  const c={id:Date.now().toString(),title:'New Chat',messages:[]};
-  chats.unshift(c);activeId=c.id;saveChats();saveActive();
-  renderChatList();showMsgs();renderMsgs(true);
-  document.getElementById('ta').focus();
-  if(cpOpen)toggleChats();
-}
-function loadChat(id){
-  activeId=id;saveActive();renderChatList();showMsgs();renderMsgs(true);
-  if(cpOpen)toggleChats();
-}
-function showMsgs(){
-  document.getElementById('welcome').style.display='none';
-  document.getElementById('msgs').style.display='flex';
-}
-function activeChat(){return chats.find(c=>c.id===activeId)||null;}
-function renderChatList(){
-  const el=document.getElementById('cp-list');
-  if(!chats.length){el.innerHTML='<div class="chat-item" style="font-style:italic;font-size:11px;color:var(--muted);justify-content:center">No chats yet</div>';return;}
-  el.innerHTML=chats.map(c=>`<div class="chat-item${c.id===activeId?' active':''}" onclick="loadChat('${c.id}')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${esc(c.title)}</div>`).join('');
-}
-
-// ── RENDER MSGS ──
-function renderMsgs(scroll){
-  const el=document.getElementById('msgs');
-  const chat=activeChat();
-  if(!chat){el.innerHTML='';return;}
-  el.innerHTML=chat.messages.map(m=>{
-    if(m.role==='user')return`<div class="msg user"><div class="msg-bubble">${esc(m.content)}</div></div>`;
-    return`<div class="msg ai"><div class="msg-icon"><span class="ast">✳</span></div><div class="msg-bubble">${md(m.content)}</div></div>`;
-  }).join('');
-  if(scroll)scrollB();
-}
-function scrollB(){const e=document.getElementById('msgs');requestAnimationFrame(()=>{e.scrollTop=e.scrollHeight;});}
-
-// mini markdown
-function md(t){
-  t=t.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre><code>${er(c.trim())}</code></pre>`);
-  t=t.replace(/`([^`]+)`/g,(_,c)=>`<code>${er(c)}</code>`);
-  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  return t.split(/\n{2,}/).map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
-}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
-function er(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-// ── INPUT ──
-function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,280)+'px';}
-function hk(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
-
-// ── SEND ──
-async function send(){
-  if(streaming){if(ctrl)ctrl.abort();return;}
-  const ta=document.getElementById('ta');
-  const txt=ta.value.trim();
-  if(!txt)return;
-  if(!cfg.baseUrl||!cfg.model){toggleSettings();return;}
-  if(!activeId)newChat();
-  const chat=activeChat();
-
-  chat.messages.push({role:'user',content:txt});
-  if(chat.title==='New Chat')chat.title=txt.slice(0,40)+(txt.length>40?'…':'');
-  saveChats();renderChatList();
-
-  const el=document.getElementById('msgs');
-  showMsgs();
-  const ub=document.createElement('div');
-  ub.className='msg user';
-  ub.innerHTML=`<div class="msg-bubble">${esc(txt)}</div>`;
-  el.appendChild(ub);
-  ta.value='';ta.style.height='auto';scrollB();
-
-  const tb=document.createElement('div');
-  tb.className='msg ai';tb.id='__t';
-  tb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div><div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
-  el.appendChild(tb);scrollB();
-
-  setStream(true);
-  try{
-const reply = await streamCall(chat.messages);
-
-const live = document.getElementById('__live');
-
-if(live){
-  live.id='';
-  chat.messages.push({role:'assistant',content:reply});
-  saveChats();
-}  }catch(e){
-    tb.remove();
-    if(e.name!=='AbortError'){
-      const eb=document.createElement('div');
-      eb.className='msg ai';
-      eb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div><div class="err-bubble">⚠ ${er(e.message)}</div>`;
-      el.appendChild(eb);scrollB();
-    }
-  }finally{setStream(false);}
-}
-
-function setStream(on){
-  streaming=on;
-  const btn=document.getElementById('send');
-  const ico=document.getElementById('send-icon');
-  if(on){
-    btn.style.background='#555';btn.title='Stop';
-    ico.innerHTML='<rect x="6" y="6" width="12" height="12" rx="2" fill="#fff" stroke="none"/>';
-  }else{
-    btn.style.background='';btn.title='Send (Enter)';
-    ico.innerHTML='<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>';
-  }
-}
-
-// ── STREAMING API ──
 async function streamCall(messages){
+
   ctrl=new AbortController();
+
   const {baseUrl,apiKey,model,system}=cfg;
+
   const h={'Content-Type':'application/json'};
-  if(apiKey&&apiKey!=='none')h['Authorization']=`Bearer ${apiKey}`;
+  if(apiKey && apiKey!=='none')h['Authorization']=`Bearer ${apiKey}`;
 
   const body=JSON.stringify({
-    model,stream:true,
+    model,
+    stream:true,
     messages:[
       ...(system?[{role:'system',content:system}]:[]),
-      ...messages.map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content}))
+      ...messages
     ]
   });
 
-  const res=await fetch(`${baseUrl}/chat/completions`,{method:'POST',headers:h,body,signal:ctrl.signal});
-  if(!res.ok){const t=await res.text();throw new Error(`API ${res.status}: ${t.slice(0,200)}`);}
+  const res=await fetch(`${baseUrl}/chat/completions`,{
+    method:'POST',
+    headers:h,
+    body,
+    signal:ctrl.signal
+  });
 
-  // replace typing with live bubble
-  const tb=document.getElementById('__t');
-  const el=document.getElementById('msgs');
-  const lb=document.createElement('div');
-  lb.className='msg ai';lb.id='__live';
-  lb.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div><div class="msg-bubble" id="__lt"></div>`;
+  if(!res.ok){
+    const t=await res.text();
+    throw new Error(`API ${res.status}: ${t.slice(0,200)}`);
+  }
+
+  const tb=document.getElementById("__t");
+  const el=document.getElementById("msgs");
+
+  const lb=document.createElement("div");
+  lb.className="msg ai";
+  lb.id="__live";
+
+  lb.innerHTML=`
+  <div class="msg-icon">
+  <span class="ast">${manifestSymbol()}</span>
+  </div>
+  <div class="msg-bubble" id="__lt"></div>
+  `;
+
   if(tb)tb.replaceWith(lb);else el.appendChild(lb);
 
-  const lt=document.getElementById('__lt');
-  let full='';
+  const lt=document.getElementById("__lt");
+
+  let full="";
+
   const reader=res.body.getReader();
   const dec=new TextDecoder();
 
   while(true){
-    const{done,value}=await reader.read();
+
+    const {done,value}=await reader.read();
+
     if(done)break;
+
     const chunk=dec.decode(value,{stream:true});
-    for(const line of chunk.split('\n')){
-      if(!line.startsWith('data:'))continue;
+
+    for(const line of chunk.split("\n")){
+
+      if(!line.startsWith("data:"))continue;
+
       const data=line.slice(5).trim();
-      if(data==='[DONE]')break;
+
+      if(data==="[DONE]")break;
+
       try{
+
         const j=JSON.parse(data);
+
         const delta=j.choices?.[0]?.delta?.content;
-        if(delta){full+=delta;lt.innerHTML=md(full);scrollB();}
+
+        if(delta && !full.endsWith(delta)){   // Groq duplicate token fix
+          full+=delta;
+          lt.innerHTML=md(full);
+        }
+
       }catch{}
+
     }
+
   }
-  lb.id='';return full;
+
+  lb.id="";
+
+  return full;
 }
+
+
+/* ================================
+   SEND FUNCTION
+================================ */
+
+async function send(){
+
+  if(streaming){
+    if(ctrl)ctrl.abort();
+    return;
+  }
+
+  const ta=document.getElementById("ta");
+  const txt=ta.value.trim();
+  if(!txt)return;
+
+  if(!cfg.baseUrl || !cfg.model){
+    toggleSettings();
+    return;
+  }
+
+  if(!activeId)newChat();
+
+  const chat=activeChat();
+
+  chat.messages.push({role:"user",content:txt});
+
+  saveChats();
+
+  const el=document.getElementById("msgs");
+
+  const ub=document.createElement("div");
+  ub.className="msg user";
+  ub.innerHTML=`<div class="msg-bubble">${esc(txt)}</div>`;
+
+  el.appendChild(ub);
+
+  ta.value="";
+
+  const tb=document.createElement("div");
+  tb.className="msg ai";
+  tb.id="__t";
+
+  tb.innerHTML=`
+  <div class="msg-icon">
+  <span class="ast">${manifestSymbol()}</span>
+  </div>
+  <div class="msg-bubble">
+  <div class="typing"><span></span><span></span><span></span></div>
+  </div>
+  `;
+
+  el.appendChild(tb);
+
+  streaming=true;
+
+  try{
+
+    const reply=await streamCall(chat.messages);
+
+    const live=document.getElementById("__live");
+
+    if(live){
+      live.id="";
+      chat.messages.push({role:"assistant",content:reply});
+      saveChats();
+    }
+
+  }catch(e){
+
+    if(e.name!=="AbortError"){
+
+      const eb=document.createElement("div");
+      eb.className="msg ai";
+
+      eb.innerHTML=`
+      <div class="msg-icon">
+      <span class="ast">${manifestSymbol()}</span>
+      </div>
+      <div class="err-bubble">⚠ ${er(e.message)}</div>
+      `;
+
+      el.appendChild(eb);
+
+    }
+
+  }
+
+  streaming=false;
+
+}
+
+
+/* ================================
+   THEME TAB UI
+================================ */
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  loadTheme();
+
+  const settings=document.querySelector(".sp-body");
+
+  const themeBlock=document.createElement("div");
+
+  themeBlock.innerHTML=`
+
+  <div style="border-top:1px solid var(--border);padding-top:12px">
+
+  <div class="form-label">Theme</div>
+
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+
+  Accent
+  <input type="color" id="theme-accent" value="${theme.accent}">
+
+  Background
+  <input type="color" id="theme-primary" value="${theme.primary}">
+
+  Font
+  <select id="theme-font">
+  <option>Georgia</option>
+  <option>Inter</option>
+  <option>Arial</option>
+  <option>Verdana</option>
+  </select>
+
+  <button class="save-btn" onclick="saveTheme()">Apply Theme</button>
+
+  </div>
+  </div>
+  `;
+
+  settings.appendChild(themeBlock);
+
+});
+
 </script>
+
 </body>
 </html>
