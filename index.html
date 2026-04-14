@@ -483,12 +483,13 @@ async function send(){
   setStream(true);
   try{
     const reply=await streamCall(chat.messages);
-    tb.remove();
-    chat.messages.push({role:'assistant',content:reply});saveChats();
-    const ab=document.createElement('div');
-    ab.className='msg ai';
-    ab.innerHTML=`<div class="msg-icon"><span class="ast">✳</span></div><div class="msg-bubble">${md(reply)}</div>`;
-    el.appendChild(ab);scrollB();
+  // finalize the streaming bubble instead of creating a new one
+const live=document.getElementById('__live');
+if(live) live.id='';
+
+chat.messages.push({role:'assistant',content:reply});
+saveChats();
+scrollB();
   }catch(e){
     tb.remove();
     if(e.name!=='AbortError'){
